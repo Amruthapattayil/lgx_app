@@ -1,12 +1,9 @@
-
 import 'package:flutter/material.dart';
-import 'counter.dart';
+import 'product_page.dart';
 
 void main() {
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: CounterPage(),
-    ),
-  );
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: ProductPage(),
+  ));
 }
