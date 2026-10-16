@@ -34,11 +34,13 @@ class ProductPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Product List'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+         backgroundColor: colors.primary,
+         foregroundColor: Colors.white,
+        
       ),
       body: ListView.builder(
         itemCount: products.length,
@@ -46,19 +48,28 @@ class ProductPage extends StatelessWidget {
           final product = products[index];
 
           return Card(
+             
             margin: const EdgeInsets.all(8),
-            child: ListTile(
-              title: Text(product['name']),
-              subtitle: Text('Price: ₹${product['price']}'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProductDetailPage(product: product),
-                  ),
-                );
-              },
-            ),
+            
+ child: ListTile(
+  title: Text(
+    product['name'],
+    style: TextStyle(
+      color: colors.secondary,
+    ),
+  ),
+  subtitle: Text('Price: ₹${product['price']}'),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ProductDetailPage(product: product),
+      ),
+    );
+  },
+),
+
           );
         },
       ),
