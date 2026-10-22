@@ -48,14 +48,14 @@ class _PostsPageState extends State<PostsPage> {
       body: FutureBuilder<List<dynamic>>(
         future: postsFuture,
         builder: (context, snapshot) {
-          // 1. Loading state
+        
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
 
-          // 2. Error state
+    
           if (snapshot.hasError) {
             return Center(
               child: Column(
@@ -72,7 +72,7 @@ class _PostsPageState extends State<PostsPage> {
             );
           }
 
-          // 3. Data state
+        
           final posts = snapshot.data ?? [];
 
           if (posts.isEmpty) {
