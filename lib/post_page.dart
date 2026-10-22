@@ -11,39 +11,32 @@ class PostsPage extends StatefulWidget {
 }
 
 class _PostsPageState extends State<PostsPage> {
-  List posts = [];
-  bool isLoading = false;
-  String? errorMessage;
+  late Future<List<dynamic>> postsFuture;
 
-  Future<void> fetchPosts() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
+  @override
+  void initState() {
+    super.initState();
+    postsFuture = fetchPosts();
+  }
 
-    try {
-      final url = Uri.parse(
-        'https://jsonplaceholder.typicode.com/posts',
-      );
+  Future<List<dynamic>> fetchPosts() async {
+    final url = Uri.parse(
+      'https://jsonplaceholder.typicode.com/posts',
+    );
 
-      final response = await http.get(url);
+    final response = await http.get(url);
 
-      if (response.statusCode == 200) {
-        setState(() {
-          posts = jsonDecode(response.body);
-        });
-      } else {
-        throw Exception('Failed to load posts');
-      }
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Could not load posts';
-      });
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      throw Exception('Failed to load posts');
     }
+  }
+
+  void retryFetch() {
+    setState(() {
+      postsFuture = fetchPosts();
+    });
   }
 
   @override
@@ -52,35 +45,58 @@ class _PostsPageState extends State<PostsPage> {
       appBar: AppBar(
         title: const Text('My Posts'),
       ),
-      body: isLoading
-          ? const Center(
+      body: FutureBuilder<List<dynamic>>(
+        future: postsFuture,
+        builder: (context, snapshot) {
+          // 1. Loading state
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
               child: CircularProgressIndicator(),
-            )
-          : errorMessage != null
-              ? Center(
-                  child: Text(errorMessage!),
-                )
-              : posts.isEmpty
-                  ? Center(
-                      child: ElevatedButton(
-                        onPressed: fetchPosts,
-                        child: const Text('Load Posts'),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: posts.length,
-                      itemBuilder: (context, index) {
-                        final post = posts[index];
+            );
+          }
 
-                        return Card(
-                          margin: const EdgeInsets.all(8),
-                          child: ListTile(
-                            title: Text(post['title']),
-                            subtitle: Text(post['body']),
-                          ),
-                        );
-                      },
-                    ),
+          // 2. Error state
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Could not load posts'),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: retryFetch,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // 3. Data state
+          final posts = snapshot.data ?? [];
+
+          if (posts.isEmpty) {
+            return const Center(
+              child: Text('No posts available'),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              final post = posts[index];
+
+              return Card(
+                margin: const EdgeInsets.all(8),
+                child: ListTile(
+                  title: Text(post['title'] ?? 'No title'),
+                  subtitle: Text(post['body'] ?? ''),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
