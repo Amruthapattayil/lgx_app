@@ -1,7 +1,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -18,34 +17,29 @@ class _PostsPageState extends State<PostsPage> {
   String searchQuery = '';
   Timer? searchTimer;
 
-  // Fetch posts from the API
+  
   Future<List<dynamic>> fetchPosts() async {
     final response = await http.get(
       Uri.parse('https://jsonplaceholder.typicode.com/posts'),
     );
-
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
     }
-
     throw Exception('Failed to load posts');
   }
 
-  // Start API request when the screen opens
   @override
   void initState() {
     super.initState();
     postsFuture = fetchPosts();
   }
 
-  // Retry API request
   void retryFetch() {
     setState(() {
       postsFuture = fetchPosts();
     });
   }
 
-  // Search with debounce
   void searchPosts(String value) {
     searchTimer?.cancel();
 
@@ -60,13 +54,11 @@ class _PostsPageState extends State<PostsPage> {
       },
     );
   }
-
   @override
   void dispose() {
     searchTimer?.cancel();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,7 +68,6 @@ class _PostsPageState extends State<PostsPage> {
       ),
       body: Column(
         children: [
-          // Search field
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
@@ -88,8 +79,6 @@ class _PostsPageState extends State<PostsPage> {
               ),
             ),
           ),
-
-          // Handle API states
           Expanded(
             child: FutureBuilder<List<dynamic>>(
               future: postsFuture,
@@ -125,7 +114,6 @@ class _PostsPageState extends State<PostsPage> {
                   );
                 }
 
-                // Filter posts using where()
                 final filteredPosts = posts.where((post) {
                   final title = post['title']
                       .toString()
@@ -139,8 +127,6 @@ class _PostsPageState extends State<PostsPage> {
                     child: Text('No matching posts found'),
                   );
                 }
-
-                // Display filtered posts
                 return ListView.builder(
                   itemCount: filteredPosts.length,
                   itemBuilder: (context, index) {
