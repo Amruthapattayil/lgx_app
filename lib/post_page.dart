@@ -1,5 +1,7 @@
 
+import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -13,89 +15,162 @@ class PostsPage extends StatefulWidget {
 class _PostsPageState extends State<PostsPage> {
   late Future<List<dynamic>> postsFuture;
 
+  String searchQuery = '';
+  Timer? searchTimer;
+
+  // Fetch posts from the API
+  Future<List<dynamic>> fetchPosts() async {
+    final response = await http.get(
+      Uri.parse('https://jsonplaceholder.typicode.com/posts'),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    }
+
+    throw Exception('Failed to load posts');
+  }
+
+  // Start API request when the screen opens
   @override
   void initState() {
     super.initState();
     postsFuture = fetchPosts();
   }
 
-  Future<List<dynamic>> fetchPosts() async {
-    final url = Uri.parse(
-      'https://jsonplaceholder.typicode.com/posts',
-    );
-
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as List<dynamic>;
-    } else {
-      throw Exception('Failed to load posts');
-    }
-  }
-
+  // Retry API request
   void retryFetch() {
     setState(() {
       postsFuture = fetchPosts();
     });
   }
 
+  // Search with debounce
+  void searchPosts(String value) {
+    searchTimer?.cancel();
+
+    searchTimer = Timer(
+      const Duration(milliseconds: 500),
+      () {
+        if (!mounted) return;
+
+        setState(() {
+          searchQuery = value.toLowerCase().trim();
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    searchTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Posts'),
+        title: const Text('Mini API App'),
+        centerTitle: true,
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: postsFuture,
-        builder: (context, snapshot) {
-        
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-    
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Could not load posts'),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: retryFetch,
-                    child: const Text('Retry'),
-                  ),
-                ],
+      body: Column(
+        children: [
+          // Search field
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              onChanged: searchPosts,
+              decoration: const InputDecoration(
+                hintText: 'Search posts by title...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
               ),
-            );
-          }
+            ),
+          ),
 
-        
-          final posts = snapshot.data ?? [];
+          // Handle API states
+          Expanded(
+            child: FutureBuilder<List<dynamic>>(
+              future: postsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
 
-          if (posts.isEmpty) {
-            return const Center(
-              child: Text('No posts available'),
-            );
-          }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Could not load posts'),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: retryFetch,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
-          return ListView.builder(
-            itemCount: posts.length,
-            itemBuilder: (context, index) {
-              final post = posts[index];
+                final posts = snapshot.data ?? [];
 
-              return Card(
-                margin: const EdgeInsets.all(8),
-                child: ListTile(
-                  title: Text(post['title'] ?? 'No title'),
-                  subtitle: Text(post['body'] ?? ''),
-                ),
-              );
-            },
-          );
-        },
+                if (posts.isEmpty) {
+                  return const Center(
+                    child: Text('No posts available'),
+                  );
+                }
+
+                // Filter posts using where()
+                final filteredPosts = posts.where((post) {
+                  final title = post['title']
+                      .toString()
+                      .toLowerCase();
+
+                  return title.contains(searchQuery);
+                }).toList();
+
+                if (filteredPosts.isEmpty) {
+                  return const Center(
+                    child: Text('No matching posts found'),
+                  );
+                }
+
+                // Display filtered posts
+                return ListView.builder(
+                  itemCount: filteredPosts.length,
+                  itemBuilder: (context, index) {
+                    final post = filteredPosts[index];
+
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          child: Text('${post['id']}'),
+                        ),
+                        title: Text(
+                          post['title'] ?? 'No title',
+                        ),
+                        subtitle: Text(
+                          post['body'] ?? '',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
