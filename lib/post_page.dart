@@ -1,11 +1,18 @@
 
-import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+
 class PostsPage extends StatefulWidget {
-  const PostsPage({super.key});
+  final bool isDarkMode;
+  final Future<void> Function(bool) onThemeChanged;
+
+  const PostsPage({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   @override
   State<PostsPage> createState() => _PostsPageState();
@@ -15,16 +22,17 @@ class _PostsPageState extends State<PostsPage> {
   late Future<List<dynamic>> postsFuture;
 
   String searchQuery = '';
-  Timer? searchTimer;
+  int searchToken = 0;
 
-  
   Future<List<dynamic>> fetchPosts() async {
     final response = await http.get(
       Uri.parse('https://jsonplaceholder.typicode.com/posts'),
     );
+
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
     }
+
     throw Exception('Failed to load posts');
   }
 
@@ -41,31 +49,34 @@ class _PostsPageState extends State<PostsPage> {
   }
 
   void searchPosts(String value) {
-    searchTimer?.cancel();
+    final currentToken = ++searchToken;
 
-    searchTimer = Timer(
-      const Duration(milliseconds: 500),
-      () {
-        if (!mounted) return;
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted || currentToken != searchToken) {
+        return;
+      }
 
-        setState(() {
-          searchQuery = value.toLowerCase().trim();
-        });
-      },
-    );
+      setState(() {
+        searchQuery = value.toLowerCase().trim();
+      });
+    });
   }
-  @override
-  void dispose() {
-    searchTimer?.cancel();
-    super.dispose();
-  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mini API App'),
-        centerTitle: true,
-      ),
+      
+appBar: AppBar(
+  title: const Text('Mini API App'),
+  centerTitle: true,
+  actions: [
+    Switch(
+      value: widget.isDarkMode,
+      onChanged: widget.onThemeChanged,
+    ),
+  ],
+),
+
       body: Column(
         children: [
           Padding(
@@ -127,6 +138,7 @@ class _PostsPageState extends State<PostsPage> {
                     child: Text('No matching posts found'),
                   );
                 }
+
                 return ListView.builder(
                   itemCount: filteredPosts.length,
                   itemBuilder: (context, index) {
