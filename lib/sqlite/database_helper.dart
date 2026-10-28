@@ -30,19 +30,18 @@ class DatabaseHelper {
     return db!;
   }
 
-  // CREATE: Save a note
+  
   Future<int> insertNote(Map<String, dynamic> note) async {
     final database = await this.database;
     return database.insert('notes', note);
   }
 
-  // READ: Get all notes
+  
   Future<List<Map<String, dynamic>>> getNotes() async {
     final database = await this.database;
     return database.query('notes');
   }
 
-  // UPDATE: Edit a note
   Future<int> updateNote(int id, Map<String, dynamic> note) async {
     final database = await this.database;
 
@@ -54,7 +53,7 @@ class DatabaseHelper {
     );
   }
 
-  // DELETE: Remove a note
+
   Future<int> deleteNote(int id) async {
     final database = await this.database;
 
