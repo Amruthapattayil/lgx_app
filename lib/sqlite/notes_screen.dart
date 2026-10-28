@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'database_helper.dart';
 
@@ -14,15 +15,24 @@ class _NotesScreenState extends State<NotesScreen> {
   final titleController = TextEditingController();
   final bodyController = TextEditingController();
 
-  void loadNotes() async {
+  int? selectedNoteId;
+
+  Future<void> loadNotes() async {
     final data = await DatabaseHelper().getNotes();
+
+    if (!mounted) return;
 
     setState(() {
       notes = data;
     });
   }
 
-  void addNote() async {
+  Future<void> addNote() async {
+    if (titleController.text.trim().isEmpty ||
+        bodyController.text.trim().isEmpty) {
+      return;
+    }
+
     final note = {
       'title': titleController.text,
       'body': bodyController.text,
@@ -34,31 +44,52 @@ class _NotesScreenState extends State<NotesScreen> {
     titleController.clear();
     bodyController.clear();
 
-    loadNotes();
+    await loadNotes();
   }
-  void updateNote(int id) async {
-  final note = {
-    'title': titleController.text,
-    'body': bodyController.text,
-  };
 
-  await DatabaseHelper().updateNote(id, note);
+  Future<void> updateNote(int id) async {
+    if (titleController.text.trim().isEmpty ||
+        bodyController.text.trim().isEmpty) {
+      return;
+    }
 
-  titleController.clear();
-  bodyController.clear();
+    final note = {
+      'title': titleController.text,
+      'body': bodyController.text,
+    };
 
-  loadNotes();
-}
+    await DatabaseHelper().updateNote(id, note);
 
-  void deleteNote(int id) async {
+    titleController.clear();
+    bodyController.clear();
+    selectedNoteId = null;
+
+    await loadNotes();
+  }
+
+  Future<void> deleteNote(int id) async {
     await DatabaseHelper().deleteNote(id);
-    loadNotes();
+
+    if (selectedNoteId == id) {
+      titleController.clear();
+      bodyController.clear();
+      selectedNoteId = null;
+    }
+
+    await loadNotes();
   }
 
   @override
   void initState() {
     super.initState();
     loadNotes();
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    bodyController.dispose();
+    super.dispose();
   }
 
   @override
@@ -84,8 +115,16 @@ class _NotesScreenState extends State<NotesScreen> {
           ),
 
           ElevatedButton(
-            onPressed: addNote,
-            child: const Text('Save Note'),
+            onPressed: () {
+              if (selectedNoteId == null) {
+                addNote();
+              } else {
+                updateNote(selectedNoteId!);
+              }
+            },
+            child: Text(
+              selectedNoteId == null ? 'Save Note' : 'Update Note',
+            ),
           ),
 
           Expanded(
@@ -97,6 +136,17 @@ class _NotesScreenState extends State<NotesScreen> {
                 return ListTile(
                   title: Text(note['title']),
                   subtitle: Text(note['body']),
+                  leading: IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      titleController.text = note['title'];
+                      bodyController.text = note['body'];
+
+                      setState(() {
+                        selectedNoteId = note['id'] as int;
+                      });
+                    },
+                  ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: () {
