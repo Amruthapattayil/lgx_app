@@ -1,8 +1,15 @@
-
 import 'package:flutter/material.dart';
+import 'post_page.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final bool isDarkMode;
+  final Future<void> Function(bool) onThemeChanged;
+
+  const LoginPage({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -14,11 +21,12 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login Form'),
         backgroundColor: colors.primary,
-         foregroundColor: Colors.white
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -48,6 +56,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
 
               const SizedBox(height: 20),
+
               TextFormField(
                 obscureText: true,
                 decoration: const InputDecoration(
@@ -68,14 +77,19 @@ class _LoginPageState extends State<LoginPage> {
               ),
 
               const SizedBox(height: 25),
+
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Form validation successful!'),
-                      ),
-                    );
+                    Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(
+    builder: (context) => PostsPage(
+      isDarkMode: widget.isDarkMode,
+      onThemeChanged: widget.onThemeChanged,
+    ),
+  ),
+);
                   }
                 },
                 child: const Text('Login'),

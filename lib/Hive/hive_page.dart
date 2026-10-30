@@ -26,19 +26,19 @@ class _HivePageState extends State<HivePage> {
     final box = await Hive.openBox('postsBox');
 
     try {
-      // Step 1: Fetch posts from API
+    
       final response = await http.get(
         Uri.parse('https://jsonplaceholder.typicode.com/posts'),
       );
 
       if (response.statusCode == 200) {
-        // Step 2: Convert JSON into a list
+      
         final latestPosts = jsonDecode(response.body);
 
-        // Step 3: Save posts in Hive
+        
         await box.put('posts', latestPosts);
 
-        // Step 4: Display API posts
+        
         if (!mounted) return;
 
         setState(() {
@@ -50,7 +50,7 @@ class _HivePageState extends State<HivePage> {
         throw Exception('Failed to fetch posts');
       }
     } catch (e) {
-      // Step 5: If API fails, read cached posts
+      
       final cachedPosts = box.get('posts');
 
       if (!mounted) return;
