@@ -1,6 +1,5 @@
 
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:hive_flutter/hive_flutter.dart';
@@ -15,9 +14,7 @@ class HivePage extends StatefulWidget {
 class _HivePageState extends State<HivePage> {
   List<dynamic> posts = [];
   bool isLoading = true;
-  String message = '';
-
-  late Box<dynamic> postsBox;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -26,54 +23,46 @@ class _HivePageState extends State<HivePage> {
   }
 
   Future<void> loadPosts() async {
-    postsBox = await Hive.openBox('postsBox');
+    final box = await Hive.openBox('postsBox');
 
-
-    final cachedPosts = postsBox.get('posts', defaultValue: []);
-
-    if (cachedPosts is List && cachedPosts.isNotEmpty) {
-      setState(() {
-        posts = cachedPosts;
-        isLoading = false;
-      });
-    }
-
-    
-    await fetchPosts();
-  }
-
-  Future<void> fetchPosts() async {
     try {
+      // Step 1: Fetch posts from API
       final response = await http.get(
         Uri.parse('https://jsonplaceholder.typicode.com/posts'),
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as List;
+        // Step 2: Convert JSON into a list
+        final latestPosts = jsonDecode(response.body);
 
-        
-        await postsBox.put('posts', data);
+        // Step 3: Save posts in Hive
+        await box.put('posts', latestPosts);
 
-        
+        // Step 4: Display API posts
         if (!mounted) return;
 
         setState(() {
-          posts = data;
+          posts = latestPosts;
           isLoading = false;
-          message = '';
+          errorMessage = null;
         });
       } else {
-        throw Exception('Failed to load posts');
+        throw Exception('Failed to fetch posts');
       }
     } catch (e) {
-      
+      // Step 5: If API fails, read cached posts
+      final cachedPosts = box.get('posts');
+
       if (!mounted) return;
 
       setState(() {
+        posts = cachedPosts == null
+            ? []
+            : List<dynamic>.from(cachedPosts);
         isLoading = false;
-        message = posts.isEmpty
-            ? 'Unable to load posts. Connect to the internet first.'
-            : 'Offline: Showing saved posts.';
+        errorMessage = posts.isEmpty
+            ? 'Unable to load posts. No cached data available.'
+            : 'Internet unavailable. Showing cached posts.';
       });
     }
   }
@@ -82,48 +71,40 @@ class _HivePageState extends State<HivePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hive Cached Posts'),
+        title: const Text('Task 1 - Hive Caching'),
         actions: [
           IconButton(
+            onPressed: loadPosts,
             icon: const Icon(Icons.refresh),
-            onPressed: fetchPosts,
-            tooltip: 'Refresh posts',
           ),
         ],
       ),
-      body: Column(
-        children: [
-          if (message.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Text(message),
-            ),
-          if (isLoading)
-            const LinearProgressIndicator(),
-          Expanded(
-            child: posts.isEmpty && isLoading
-                ? const SizedBox.shrink()
-                : posts.isEmpty
-                    ? const Center(child: Text('No posts available'))
-                    : ListView.builder(
-                        itemCount: posts.length,
-                        itemBuilder: (context, index) {
-                          final post = Map<String, dynamic>.from(
-                            posts[index] as Map,
-                          );
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                if (errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Text(errorMessage!),
+                  ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: posts.length,
+                    itemBuilder: (context, index) {
+                      final post = posts[index];
 
-                          return ListTile(
-                            leading: CircleAvatar(
-                              child: Text('${post['id']}'),
-                            ),
-                            title: Text(post['title'] ?? ''),
-                            subtitle: Text(post['body'] ?? ''),
-                          );
-                        },
-                      ),
-          ),
-        ],
-      ),
+                      return Card(
+                        child: ListTile(
+                          title: Text(post['title'].toString()),
+                          subtitle: Text(post['body'].toString()),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
