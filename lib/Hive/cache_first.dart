@@ -79,7 +79,7 @@ class _Task2OfflinePageState extends State<Task2OfflinePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task 2 - Offline First'),
+        title: const Text('my app'),
         actions: [
           IconButton(
             onPressed: loadPosts,
