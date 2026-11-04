@@ -1,8 +1,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import '../providers/theme_notifier.dart';
 import '../providers/cart_notifier.dart';
+
+import '../providers/auth_notifier.dart';
 import 'cart_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -10,6 +12,9 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthNotifier>();
+final theme = context.watch<ThemeNotifier>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home Screen'),
@@ -66,6 +71,32 @@ class HomeScreen extends StatelessWidget {
               },
               child: const Text('Go to Cart'),
             ),
+            const SizedBox(height: 20),
+
+Text(
+  auth.isLoggedIn ? 'Logged In' : 'Logged Out',
+),
+
+ElevatedButton(
+  onPressed: () {
+    if (auth.isLoggedIn) {
+      context.read<AuthNotifier>().logout();
+    } else {
+      context.read<AuthNotifier>().login();
+    }
+  },
+  child: Text(
+    auth.isLoggedIn ? 'Logout' : 'Login',
+  ),
+),
+
+SwitchListTile(
+  title: const Text('Dark Mode'),
+  value: theme.isDarkMode,
+  onChanged: (_) {
+    context.read<ThemeNotifier>().toggleTheme();
+  },
+),
           ],
         ),
       ),
