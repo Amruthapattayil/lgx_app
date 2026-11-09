@@ -6,6 +6,7 @@ import 'providers/cart_notifier.dart';
 import 'providers/auth_notifier.dart';
 import 'providers/theme_notifier.dart';
 
+
 import 'screens/home_screen.dart';
 
 void main() {
@@ -21,6 +22,8 @@ void main() {
         ChangeNotifierProvider(
           create: (_) => ThemeNotifier(),
         ),
+       
+    
       ],
       child: const MyApp(),
     ),
