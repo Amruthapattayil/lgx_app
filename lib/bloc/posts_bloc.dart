@@ -1,12 +1,10 @@
 
-import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
+import '../repository/posts_repository.dart';
 
 abstract class PostsEvent {}
 
 class FetchPosts extends PostsEvent {}
-
 
 abstract class PostsState {}
 
@@ -24,9 +22,10 @@ class PostsError extends PostsState {
   PostsError(this.message);
 }
 
-
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
-  PostsBloc() : super(PostsLoading()) {
+  final PostsRepository repository;
+
+  PostsBloc(this.repository) : super(PostsLoading()) {
     on<FetchPosts>(_onFetchPosts);
   }
 
@@ -37,20 +36,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     emit(PostsLoading());
 
     try {
-      final response = await http.get(
-        Uri.parse('https://jsonplaceholder.typicode.com/posts'),
-      );
+      final posts = await repository.fetchPosts();
 
-      if (response.statusCode == 200) {
-        final List<dynamic> posts =
-            jsonDecode(response.body);
-
-        emit(PostsLoaded(posts));
-      } else {
-        emit(PostsError(
-          'Failed to fetch posts: ${response.statusCode}',
-        ));
-      }
+      emit(PostsLoaded(posts));
     } catch (e) {
       emit(PostsError(e.toString()));
     }
