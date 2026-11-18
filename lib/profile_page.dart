@@ -1,20 +1,6 @@
 
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp( 
-      home: ProfilePage(),
-    );
-  }
-}
+import 'package:go_router/go_router.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -26,6 +12,14 @@ class ProfilePage extends StatelessWidget {
         title: const Text('My Profile'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+
+        // Back button
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go('/');
+          },
+        ),
       ),
 
       body: Center(
@@ -75,9 +69,8 @@ class ProfilePage extends StatelessWidget {
 
               const Divider(height: 30),
 
-            
-              Row(
-                children: const [
+              const Row(
+                children: [
                   Icon(Icons.email, color: Colors.blue),
                   SizedBox(width: 12),
                   Text('amrutha@example.com'),
@@ -86,9 +79,8 @@ class ProfilePage extends StatelessWidget {
 
               const SizedBox(height: 15),
 
-              
-              Row(
-                children: const [
+              const Row(
+                children: [
                   Icon(Icons.location_on, color: Colors.blue),
                   SizedBox(width: 12),
                   Text('Kerala, India'),
@@ -97,9 +89,8 @@ class ProfilePage extends StatelessWidget {
 
               const SizedBox(height: 15),
 
-              
-              Row(
-                children: const [
+              const Row(
+                children: [
                   Icon(Icons.school, color: Colors.blue),
                   SizedBox(width: 12),
                   Expanded(

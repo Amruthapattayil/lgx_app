@@ -1,11 +1,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+
 import '../providers/theme_notifier.dart';
 import '../providers/cart_notifier.dart';
-
 import '../providers/auth_notifier.dart';
-import 'cart_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -13,7 +13,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthNotifier>();
-final theme = context.watch<ThemeNotifier>();
+    final theme = context.watch<ThemeNotifier>();
 
     return Scaffold(
       appBar: AppBar(
@@ -23,12 +23,7 @@ final theme = context.watch<ThemeNotifier>();
             builder: (context, cart, child) {
               return IconButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CartScreen(),
-                    ),
-                  );
+                  context.push('/cart');
                 },
                 icon: Selector<CartNotifier, int>(
                   selector: (context, cart) => cart.cartCount,
@@ -54,49 +49,65 @@ final theme = context.watch<ThemeNotifier>();
               },
               child: const Text('Add Item'),
             ),
+
             ElevatedButton(
               onPressed: () {
                 context.read<CartNotifier>().removeItem();
               },
               child: const Text('Remove Item'),
             ),
+
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CartScreen(),
-                  ),
-                );
+                context.push('/cart');
               },
               child: const Text('Go to Cart'),
             ),
+
+            const SizedBox(height: 15),
+
+            // Navigate to Posts
+            ElevatedButton(
+              onPressed: () {
+  context.go('/posts');
+},
+              child: const Text('View Posts'),
+            ),
+
+            // Navigate to Profile
+            ElevatedButton(
+              onPressed: () {
+                context.push('/profile');
+              },
+              child: const Text('View Profile'),
+            ),
+
             const SizedBox(height: 20),
 
-Text(
-  auth.isLoggedIn ? 'Logged In' : 'Logged Out',
-),
+            Text(
+              auth.isLoggedIn ? 'Logged In' : 'Logged Out',
+            ),
 
-ElevatedButton(
-  onPressed: () {
-    if (auth.isLoggedIn) {
-      context.read<AuthNotifier>().logout();
-    } else {
-      context.read<AuthNotifier>().login();
-    }
-  },
-  child: Text(
-    auth.isLoggedIn ? 'Logout' : 'Login',
-  ),
-),
+            ElevatedButton(
+              onPressed: () {
+                if (auth.isLoggedIn) {
+                  context.read<AuthNotifier>().logout();
+                } else {
+                  context.read<AuthNotifier>().login();
+                }
+              },
+              child: Text(
+                auth.isLoggedIn ? 'Logout' : 'Login',
+              ),
+            ),
 
-SwitchListTile(
-  title: const Text('Dark Mode'),
-  value: theme.isDarkMode,
-  onChanged: (_) {
-    context.read<ThemeNotifier>().toggleTheme();
-  },
-),
+            SwitchListTile(
+              title: const Text('Dark Mode'),
+              value: theme.isDarkMode,
+              onChanged: (_) {
+                context.read<ThemeNotifier>().toggleTheme();
+              },
+            ),
           ],
         ),
       ),

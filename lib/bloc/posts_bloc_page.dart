@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'posts_bloc.dart';
 
 class PostsBlocPage extends StatelessWidget {
@@ -15,14 +16,12 @@ class PostsBlocPage extends StatelessWidget {
       body: BlocBuilder<PostsBloc, PostsState>(
         builder: (context, state) {
 
-        
           if (state is PostsLoading) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
 
-          
           if (state is PostsLoaded) {
             return ListView.builder(
               itemCount: state.posts.length,
@@ -37,13 +36,15 @@ class PostsBlocPage extends StatelessWidget {
                     ),
                     title: Text(post['title']),
                     subtitle: Text(post['body']),
+                    onTap: () {
+                      context.push('/posts/${post['id']}');
+                    },
                   ),
                 );
               },
             );
           }
 
-          
           if (state is PostsError) {
             return Center(
               child: Text(

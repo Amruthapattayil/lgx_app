@@ -1,14 +1,20 @@
+
 import 'package:flutter/material.dart';
-import 'post_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import 'cubit/auth_cubit.dart';
 
 class LoginPage extends StatefulWidget {
   final bool isDarkMode;
   final Future<void> Function(bool) onThemeChanged;
+  final String from;
 
   const LoginPage({
     super.key,
     required this.isDarkMode,
     required this.onThemeChanged,
+    this.from = '/profile',
   });
 
   @override
@@ -28,18 +34,23 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: colors.primary,
         foregroundColor: Colors.white,
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(20),
+
         child: Form(
           key: _formKey,
+
           child: Column(
             children: [
               TextFormField(
                 keyboardType: TextInputType.emailAddress,
+
                 decoration: const InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(),
                 ),
+
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter your email';
@@ -59,10 +70,12 @@ class _LoginPageState extends State<LoginPage> {
 
               TextFormField(
                 obscureText: true,
+
                 decoration: const InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
                 ),
+
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your password';
@@ -81,17 +94,15 @@ class _LoginPageState extends State<LoginPage> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(
-    builder: (context) => PostsPage(
-      isDarkMode: widget.isDarkMode,
-      onThemeChanged: widget.onThemeChanged,
-    ),
-  ),
-);
+
+                    // Update authentication state
+                    context.read<AuthCubit>().login();
+
+                    // Navigate to the originally requested page
+                    context.go(widget.from);
                   }
                 },
+
                 child: const Text('Login'),
               ),
             ],
