@@ -17,6 +17,8 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
         title: const Text('Home Screen'),
         actions: [
           Consumer<CartNotifier>(
@@ -62,24 +64,6 @@ class HomeScreen extends StatelessWidget {
                 context.push('/cart');
               },
               child: const Text('Go to Cart'),
-            ),
-
-            const SizedBox(height: 15),
-
-            // Navigate to Posts
-            ElevatedButton(
-              onPressed: () {
-  context.go('/posts');
-},
-              child: const Text('View Posts'),
-            ),
-
-            // Navigate to Profile
-            ElevatedButton(
-              onPressed: () {
-                context.push('/profile');
-              },
-              child: const Text('View Profile'),
             ),
 
             const SizedBox(height: 20),
