@@ -1,17 +1,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../repository/posts_repository.dart';
+
+import '../data/repositories/remote_post_repository.dart';
 import 'posts_bloc.dart';
 import 'posts_bloc_page.dart';
 
 void main() {
   runApp(
     BlocProvider(
-  create: (context) =>
-      PostsBloc(PostsRepository())..add(FetchPosts()),
-  child: const MyApp(),
-)
+      create: (context) =>
+          PostsBloc(RemotePostRepository())..add(FetchPosts()),
+      child: const MyApp(),
+    ),
   );
 }
 

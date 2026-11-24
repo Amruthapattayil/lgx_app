@@ -1,6 +1,6 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../repository/posts_repository.dart';
+import '../domain/repositories/post_repository.dart';
 
 abstract class PostsEvent {}
 
@@ -23,7 +23,7 @@ class PostsError extends PostsState {
 }
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
-  final PostsRepository repository;
+  final PostRepository repository;
 
   PostsBloc(this.repository) : super(PostsLoading()) {
     on<FetchPosts>(_onFetchPosts);
@@ -37,10 +37,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
     try {
       final posts = await repository.fetchPosts();
-
       emit(PostsLoaded(posts));
     } catch (e) {
       emit(PostsError(e.toString()));
     }
   }
 }
+

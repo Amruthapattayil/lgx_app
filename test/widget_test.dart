@@ -10,11 +10,10 @@ import 'package:lgx_app/providers/cart_notifier.dart';
 import 'package:lgx_app/providers/auth_notifier.dart';
 import 'package:lgx_app/providers/theme_notifier.dart';
 import 'package:lgx_app/bloc/posts_bloc.dart';
-import 'package:lgx_app/repository/posts_repository.dart';
+import 'package:lgx_app/data/repositories/remote_post_repository.dart';
 
 void main() {
   testWidgets('App displays Home Screen', (tester) async {
-
     final authCubit = AuthCubit();
     final router = createAppRouter(authCubit);
 
@@ -30,7 +29,7 @@ void main() {
             BlocProvider.value(value: authCubit),
             BlocProvider(
               create: (_) =>
-                  PostsBloc(PostsRepository())..add(FetchPosts()),
+                  PostsBloc(RemotePostRepository())..add(FetchPosts()),
             ),
           ],
           child: MyApp(router: router),
